@@ -4,6 +4,7 @@ import apscheduler.schedulers.blocking
 import apscheduler.triggers.combining
 import apscheduler.triggers.interval
 
+import datetime
 import logging
 import pytz
 import threading
@@ -13,6 +14,20 @@ from . import job_load_calendar
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
+
+class ImmediateIntervalTrigger(apscheduler.triggers.interval.IntervalTrigger):
+    def __init__(self, *args, **kwargs):
+        apscheduler.triggers.interval.IntervalTrigger.__init__(self, *args, **kwargs)
+        self.immediate_trigger_done = False
+
+
+    def get_next_fire_time(self, previous_fire_time, now):
+        if not self.immediate_trigger_done:
+            self.immediate_trigger_done = True
+            return self.timezone.normalize(now)
+        else:
+            return apscheduler.triggers.interval.IntervalTrigger.get_next_fire_time(self, previous_fire_time, now)
+
 
 class Bindicate(object):
     def __init__(self, app):
@@ -29,12 +44,12 @@ class Bindicate(object):
     def configure_jobs(self):
         # Calendar loader
         self.load_calendar_job = job_load_calendar.JobLoadCalendar(self.app, time_limit=300)
-        # Add immediate job
-        trigger = apscheduler.triggers.combining.AndTrigger([apscheduler.triggers.interval.IntervalTrigger(minutes=5)])
-        self.app.scheduler.add_job(
+        trigger = ImmediateIntervalTrigger(seconds=10)
+
+        load_calendar_job_obj = self.app.scheduler.add_job(
             self.load_calendar_job.enter,
             id='load_calendar_job',
-            misfire_grace_time=300,
+            misfire_grace_time=30,
             name='Load calendar',
             replace_existing=True,
             trigger=trigger)
