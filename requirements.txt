@@ -1,0 +1,7 @@
+# Requiremets for bindicator
+# Pass to pip as pip -r requirements.txt
+
+APScheduler>=3.0
+requests>=2.0
+pytz>=0.0
+vobject>=0.9
