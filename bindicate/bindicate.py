@@ -32,6 +32,12 @@ class ImmediateIntervalTrigger(apscheduler.triggers.interval.IntervalTrigger):
 class Bindicate(object):
     def __init__(self, app):
         self.app = app
+        self.events = []
+
+
+    def add_event(self, code, message, body):
+        LOGGER.info("Added event %s: %s (%d)", code, message, len(body))
+        self.events.append((code, message, body))
 
 
     def configure_scheduler(self):
@@ -44,7 +50,7 @@ class Bindicate(object):
     def configure_jobs(self):
         # Calendar loader
         self.load_calendar_job = job_load_calendar.JobLoadCalendar(self.app, time_limit=300)
-        trigger = ImmediateIntervalTrigger(seconds=10)
+        trigger = ImmediateIntervalTrigger(seconds=3600)
 
         load_calendar_job_obj = self.app.scheduler.add_job(
             self.load_calendar_job.enter,
@@ -54,7 +60,7 @@ class Bindicate(object):
             replace_existing=True,
             trigger=trigger)
 
-
+        # Light controller
         self.light_ticker_job = job_light_ticker.JobLightTicker(self.app, time_limit=5)
         self.app.scheduler.add_job(
             self.light_ticker_job.enter,
@@ -63,7 +69,7 @@ class Bindicate(object):
             name='Minute ticker',
             replace_existing=True,
             trigger='interval',
-            seconds=5)
+            seconds=500)
 
 
     def setup(self):
