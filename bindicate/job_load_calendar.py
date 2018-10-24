@@ -1,10 +1,12 @@
 
 import datetime
+import itertools
 import hashlib
 import logging
 import pytz
 import requests
 import threading
+import time
 import vobject
 
 LOGGER = logging.getLogger(__name__)
@@ -37,8 +39,9 @@ class JobLoadCalendar(job_base.TimeLimitedJob):
         }
 
         get_reply = requests.get(calendar_url, headers=headers)
-
+        self.check_timeout()
         self.vobject_calendar = vobject.readOne(get_reply.content)
+        self.check_timeout()
         self.last_calendar_content = get_reply.content
 
 
@@ -79,6 +82,7 @@ class JobLoadCalendar(job_base.TimeLimitedJob):
                     start_time=start_time
                 )
                 calendar_events.append(time_record)
+                self.check_timeout()
 
         def _compare(a, b):
             time_cmp = cmp(a['start_time'], b['start_time'])
@@ -92,7 +96,7 @@ class JobLoadCalendar(job_base.TimeLimitedJob):
         rewrite_calendar = False
 
         if len(sorted_calendar) < 5:
-            LOGGER.error("Ignoring unreasonable calendar size %d", len(sorted_calendar))
+            raise Exception('Ignoring unreasonable calendar size %d' % len(sorted_calendar))
         elif not self.app.calendar:
             rewrite_calendar = True
         elif self.app.calendar == sorted_calendar:
@@ -117,7 +121,6 @@ class JobLoadCalendar(job_base.TimeLimitedJob):
             with self.app.calendar_lock:
                 self.app.calendar = sorted_calendar
 
-
             self.calendar_change_count = 0
 
         self.last_sorted_calendar = sorted_calendar
@@ -126,7 +129,21 @@ class JobLoadCalendar(job_base.TimeLimitedJob):
     def enter(self):
         job_base.TimeLimitedJob.enter(self)
         LOGGER.info("Entered JobLoadCalendar %d", self.count)
-        self.load_calendar()
-        self.parse_calendar()
+        for i in itertools.count():
+            try:
+                self.check_timeout()
+                self.load_calendar()
+                self.check_timeout()
+                self.parse_calendar()
+                break
+            except Exception as e:
+                if i < 3:
+                    LOGGER.error('Failed to load calendar (%d, retrying): %s', i, e)
+                else:
+                    LOGGER.error('Failed to load calendar (%d, aborting): %s', i, e)
+                    raise
+                time.sleep(2)
+                self.check_timeout()
+
         LOGGER.info("Exited JobLoadCalendar %d", self.count)
         self.count += 1

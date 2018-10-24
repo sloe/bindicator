@@ -1,7 +1,6 @@
 
 
 import apscheduler.schedulers.blocking
-import apscheduler.triggers.combining
 import apscheduler.triggers.interval
 
 import datetime
@@ -69,7 +68,7 @@ class Bindicate(object):
             name='Minute ticker',
             replace_existing=True,
             trigger='interval',
-            seconds=500)
+            seconds=10)
 
 
     def setup(self):
