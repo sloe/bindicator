@@ -21,7 +21,7 @@ class DeriveColours(object):
 
         current_events = []
         with self.app.calendar_lock:
-            for calendar_event in self.app.calendar:
+            for calendar_event in self.app.calendar or []:
                 # If start time is within the bracketed range
                 if (time_utc > calendar_event['start_time'] - datetime.timedelta(seconds=sec_before_binday)and
                     time_utc < calendar_event['start_time'] + datetime.timedelta(seconds=sec_after_binday)):

@@ -68,7 +68,7 @@ class Bindicate(object):
             name='Minute ticker',
             replace_existing=True,
             trigger='interval',
-            seconds=10)
+            seconds=6)
 
 
     def setup(self):
