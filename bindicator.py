@@ -73,6 +73,7 @@ class App(object):
             ('bindicator', 'signal_blue_bin'),
             ('bindicator', 'signal_green_bin'),
             ('bindicator', 'signal_nightlight'),
+            ('bindicator', 'signal_none'),
             ('bindicator', 'tp_bulb_ips'),
         )
 

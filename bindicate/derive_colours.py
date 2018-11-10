@@ -1,10 +1,12 @@
 
 import copy
 import datetime
+import dateutil.parser
 import itertools
 import hashlib
 import logging
 import math
+import pytz
 import re
 
 
@@ -93,15 +95,15 @@ class DeriveColours(object):
             colours = self.app.options.signal_nightlight
             for colour in colours.get('tp', []):
                 nightlight_colour = copy.copy(colour)
-                nightlight_colour['brightness'] = int(nightlight_colour.get('brightness', 100) * brightness)
+                nightlight_colour['brightness'] = int(min(100, 1 + nightlight_colour.get('brightness', 100) * brightness))
                 nightlight_colours.append(nightlight_colour)
 
         LOGGER.info("Brightness=%.1f", brightness)
         return nightlight_colours
 
 
-
     def derive_colours(self, time_utc):
+        # time_utc = dateutil.parser.parse('2018-11-22 01:00:00').replace(tzinfo=pytz.utc)
         bin_colours = self.derive_bin_colours(time_utc)
         colours = []
         colours += bin_colours
@@ -109,5 +111,8 @@ class DeriveColours(object):
         if not colours:
             nightlight_colours = self.derive_nightlight_colours(time_utc)
             colours += nightlight_colours
+
+        if not colours:
+            colours += self.app.options.signal_none.get('tp', [])
 
         return colours

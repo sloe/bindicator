@@ -20,6 +20,7 @@ class LightTP(object):
         self.port = port
         self.socket_timeout = socket_timeout
 
+        self.last_colour_state = {}
         self.socket = None
 
         self.change_state('INIT')
@@ -41,21 +42,30 @@ class LightTP(object):
 
 
     def set_colour(self, colour_spec):
-        if self.state == 'INIT':
-            self.do_init()
+        if self.last_colour_state == colour_spec:
+            LOGGER.debug("Colour unchanged: %s", pformat(colour_spec))
+        else:
+            if self.state == 'INIT':
+                self.do_init()
 
-        transition_light_state=OrderedDict(
-            ignore_default=1
-        )
+            transition_light_state=OrderedDict(
+                ignore_default=1
+            )
 
-        for key in sorted(colour_spec.keys()):
-            assert(key in ('brightness','color_temp', 'hue', 'on_off', 'saturation', 'transition_period'))
-            transition_light_state[key] = colour_spec[key]
+            for key in sorted(colour_spec.keys()):
+                assert(key in ('brightness','color_temp', 'hue', 'on_off', 'saturation', 'transition_period'))
+                transition_light_state[key] = colour_spec[key]
 
-        message = {'smartlife.iot.smartbulb.lightingservice': dict(transition_light_state=transition_light_state)}
+            if colour_spec.get('brightness', 0) != 0 and self.last_colour_state.get('brightness', 0) == 0:
+                transition_light_state['on_off'] = 1
+            elif colour_spec.get('brightness') == 0 and self.last_colour_state.get('brightness') != 0:
+                transition_light_state['on_off'] = 0
 
-        result = self.send_with_retries(message)
-        LOGGER.debug("Set colour:\n%s\n\n%s", pformat(colour_spec), pformat(result))
+            message = {'smartlife.iot.smartbulb.lightingservice': dict(transition_light_state=transition_light_state)}
+
+            result = self.send_with_retries(message)
+            self.last_colour_state = colour_spec
+            LOGGER.debug("Set colour:\n%s\n\n%s", pformat(colour_spec), pformat(result))
 
 
     @staticmethod
