@@ -1,0 +1,18 @@
+[bindicator]
+calendar_url = https://refusecalendarapi.azurewebsites.net/calendar/ical/028634
+nightlight_hysteresis = 1000
+signal_black_bin = {"tp": [{"brightness": 40, "hue": 180, "saturation": 0}, {"brightness": 6, "hue": 180, "saturation": 0}]}
+signal_blue_bin = {"tp": [{"brightness": 100, "hue": 240, "saturation": 95}]}
+signal_green_bin = {"tp": [{"brightness": 50, "hue": 120, "saturation": 100}]}
+signal_nightlight = {"tp": [{"brightness": 50, "hue": 60, "saturation": 50}, {"brightness": 100, "hue": 60, "saturation": 100}]}
+light_change_sec = 6
+# sec_before_binday = 21600
+# sec_after_binday = 1800
+sec_before_binday = 21600
+sec_after_binday = 1800
+tp_bulb_ips = ["10.67.64.17"]
+transition_msec = 4000
+utc_dark_summer = 22:00
+utc_dark_winter = 16:30
+utc_light_summer = 01:00
+utc_light_winter = 01:00

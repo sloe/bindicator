@@ -27,7 +27,7 @@ class LightTP(object):
 
     def change_state(self, new_state):
         assert(new_state in ('INIT', 'READY'))
-        self.state = 'INIT'
+        self.state = new_state
 
 
     def do_init(self):

@@ -60,15 +60,16 @@ class Bindicate(object):
             trigger=trigger)
 
         # Light controller
-        self.light_ticker_job = job_light_ticker.JobLightTicker(self.app, time_limit=5)
+        light_change_sec = self.app.options.light_change_sec
+        self.light_interval_job = job_light_ticker.JobLightTicker(self.app, time_limit=light_change_sec - 1)
         self.app.scheduler.add_job(
-            self.light_ticker_job.enter,
-            id='light_ticker_job',
-            misfire_grace_time=5,
-            name='Minute ticker',
+            self.light_interval_job.enter,
+            id='light_interval_job',
+            misfire_grace_time=int(light_change_sec),
+            name='Light interval ticker',
             replace_existing=True,
             trigger='interval',
-            seconds=6)
+            seconds=light_change_sec)
 
 
     def setup(self):
