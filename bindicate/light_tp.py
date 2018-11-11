@@ -132,7 +132,6 @@ class LightTP(object):
                                             terminated = True
 
             finally:
-                tp_sock.shutdown(socket.SHUT_RDWR)
                 tp_sock.close()
 
             if terminated:
